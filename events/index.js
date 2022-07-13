@@ -1,7 +1,5 @@
-
-
 const { ethers } = require("ethers");
-const { abi } = require('../../build/contracts/DicioAlliacePoc.json');
+const { abi } = require('../build/contracts/DicioAlliacePoc.json');
 
 const broadcasFlow = require("./BroadcastFlow")
 
