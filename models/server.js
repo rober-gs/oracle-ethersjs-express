@@ -8,7 +8,7 @@ class Server {
 
     constructor() {
         
-        this.port   = process.env.EXPRESS_PORT;
+        this.port   = process.env.PORT || 8080;
 
         this.app    = express();
         this.events = oracleListener;
