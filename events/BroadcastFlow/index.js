@@ -10,16 +10,23 @@ const broadcasFlow = async({owner, uuid, cid, curp}) => {
 
     const NODE_ACCOUNT = process.env.NODE_ACCOUNT;    
 
-    if(owner == NODE_ACCOUNT) return;
+    if(owner == NODE_ACCOUNT) {
+        console.log("🚀 ~ This node send this search ");        
+        return
+    };
     
+    console.log("✅  ~ Start Request To Backend ...");        
+
     /**
      * Modelos Biometricos 
-     */
+    */
     let dataBiometrics = new FormData();    
     dataBiometrics.append("curp", curp)
     dataBiometrics.append('imageQuery', fs.createReadStream(__dirname +'/img.png'));
 
     const result = await compare(dataBiometrics);
+
+    console.log("✅ ~  Response backend check ...");    
 
     /**
      * Middleware Blockchain
@@ -29,14 +36,19 @@ const broadcasFlow = async({owner, uuid, cid, curp}) => {
         incrementAmount: (10 * 1024) // grow by 10 kilobytes each time buffer overflows.
     });
 
-    wsBuffer.write(JSON.stringify(result));
-    
+    console.log("✅  ~ Start Request To Middleware Blockchain ...");        
+
+    wsBuffer.write(JSON.stringify(result));    
+
     let dataBlockchain = new FormData();
     dataBlockchain.append('Curp', curp);
     dataBlockchain.append('Uuid', uuid);
     dataBlockchain.append('File', wsBuffer.getContents(), `${NODE_ACCOUNT}.json`);
 
     await addRecord(dataBlockchain);
+
+    console.log("✅ ~  Response middleware blockchain check ...");    
+
 }
 
 module.exports = broadcasFlow;
