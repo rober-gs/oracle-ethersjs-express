@@ -23,7 +23,7 @@ const oracleListener = () => {
     /**
      * 
      */
-    contract.on("BroadcastEvent", (...params) => {        
+    contract.on("BroadcastEvent", async(...params) => {        
         const {"0":owner, "1":uuid, "2":cid, "3":curp} = params;   
         await broadcasFlow({owner, uuid, cid, curp});
     });
@@ -37,7 +37,7 @@ const oracleListener = () => {
     /**
      *  
      */    
-    contract.on("BroadcastEndingEvent", (...params) => {        
+    contract.on("BroadcastEndingEvent", async(...params) => {        
         const {"0":owner, "1":uuid} = params;   
         console.log("🚩 ~ End Broadcast:", uuid);    
         await endBroadcastFlow({owner, uuid});    
