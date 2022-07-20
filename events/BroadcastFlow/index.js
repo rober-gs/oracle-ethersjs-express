@@ -14,12 +14,8 @@ const broadcasFlow = async({owner, uuid, cid, curp}) => {
         console.log("📌📌📌 => This node send this search <=");        
         return
     };
-    /**
-     *  Get Img From IPFS
-    */
-    // console.log("✅ ~ Start Request To IPFS ...");            
     
-    // let imgFile = await getFileBlob(dataBiometrics, cid, `${curp}_${NODE_ACCOUNT}.png`);
+    console.log("📌📌📌 ==> This Node is", NODE_ACCOUNT);        
     
     /**
      * Modelos Biometricos 
@@ -32,7 +28,7 @@ const broadcasFlow = async({owner, uuid, cid, curp}) => {
     dataBiometrics.append('imageQuery', fs.createReadStream(__dirname +'/img.png'));
 
     const result = await compare(dataBiometrics);
-    console.log("[ - ] End Back");    
+    console.log("[ - ] End Back", result);    
 
     /**
      * Middleware Blockchain
@@ -50,9 +46,9 @@ const broadcasFlow = async({owner, uuid, cid, curp}) => {
     dataBlockchain.append('Uuid', uuid);
     dataBlockchain.append('File', bufferJsonFile.getContents(), `${NODE_ACCOUNT}.json`);
 
-    await addRecord(dataBlockchain);
+    const dataResult = await addRecord(dataBlockchain);
 
-    console.log("[ - ] End Middleware.");   
+    console.log("[ - ] End Middleware.", dataResult);   
 }
 
 module.exports = broadcasFlow;
