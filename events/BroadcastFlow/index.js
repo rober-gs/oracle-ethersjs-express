@@ -2,7 +2,7 @@ const streamBuffers = require('stream-buffers');
 const FormData = require('form-data');
 const fs = require('fs');
 
-//const { getFile } = require("../../services/ipfsService");
+//const { getFileBlob } = require("../../services/ipfsService");
 const { compare } = require("../../services/modelsServices");
 const { addRecord } = require("../../services/blockchainService");
  
@@ -11,44 +11,48 @@ const broadcasFlow = async({owner, uuid, cid, curp}) => {
     const NODE_ACCOUNT = process.env.NODE_ACCOUNT;    
 
     if(owner == NODE_ACCOUNT) {
-        console.log("🚀 ~ This node send this search ");        
+        console.log("📌📌📌 => This node send this search <=");        
         return
     };
+    /**
+     *  Get Img From IPFS
+    */
+    // console.log("✅ ~ Start Request To IPFS ...");            
     
-    console.log("✅  ~ Start Request To Backend ...");        
-
+    // let imgFile = await getFileBlob(dataBiometrics, cid, `${curp}_${NODE_ACCOUNT}.png`);
+    
     /**
      * Modelos Biometricos 
-    */
+     */
+    console.log("✅ [ + ] Start Request To Backend.");        
+    
     let dataBiometrics = new FormData();    
-    dataBiometrics.append("curp", curp)
+    dataBiometrics.append("curp", curp);    
+    //dataBiometrics.append('imageQuery', imgFile);
     dataBiometrics.append('imageQuery', fs.createReadStream(__dirname +'/img.png'));
 
     const result = await compare(dataBiometrics);
-
-    console.log("✅ ~  Response backend check ...");    
+    console.log("[ - ] End Back");    
 
     /**
      * Middleware Blockchain
      */         
-    const wsBuffer = new streamBuffers.WritableStreamBuffer({
-        initialSize: (100 * 1024),   // start at 100 kilobytes.
-        incrementAmount: (10 * 1024) // grow by 10 kilobytes each time buffer overflows.
+    console.log("✅ [ + ] Start Request To Middleware Blockchain.");        
+    const bufferJsonFile = new streamBuffers.WritableStreamBuffer({
+        initialSize: (100 * 1024),  
+        incrementAmount: (10 * 1024)
     });
 
-    console.log("✅  ~ Start Request To Middleware Blockchain ...");        
-
-    wsBuffer.write(JSON.stringify(result));    
+    bufferJsonFile.write(JSON.stringify(result));    
 
     let dataBlockchain = new FormData();
     dataBlockchain.append('Curp', curp);
     dataBlockchain.append('Uuid', uuid);
-    dataBlockchain.append('File', wsBuffer.getContents(), `${NODE_ACCOUNT}.json`);
+    dataBlockchain.append('File', bufferJsonFile.getContents(), `${NODE_ACCOUNT}.json`);
 
     await addRecord(dataBlockchain);
 
-    console.log("✅ ~  Response middleware blockchain check ...");    
-
+    console.log("[ - ] End Middleware.");   
 }
 
 module.exports = broadcasFlow;

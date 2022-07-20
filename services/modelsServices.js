@@ -7,7 +7,6 @@ const compare = (data) => {
     const BIOMETRIC_API_KEY     = process.env.BIOMETRIC_API_KEY;
     const BIOMETRIC_URL_SERVICE = process.env.BIOMETRIC_URL_SERVICE;
     
-
     const config = {
         method: 'post',
         url: BIOMETRIC_URL_SERVICE,

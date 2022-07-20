@@ -18,7 +18,7 @@ const oracleListener = () => {
      */
     contract.on("CreatedSearchEvent", (...params) => {        
         const {"0":owner, "1":uuid } = params;   
-        console.log("🚩 ~ New Search => 🙎‍♂️ Owner: ", owner, "🆔 id: ", uuid);        
+        console.log("⛓️🤖 [ 🚩 ] New Search => 🙎‍♂️ Owner: ", owner, "🆔 id: ", uuid);        
     });
     /**
      * 
@@ -32,14 +32,14 @@ const oracleListener = () => {
      */
     contract.on("ParticipateEvent", (...params) => {        
         const {"0":participant, "1":uuid, "3":id} = params;   
-        console.log("🚩 ~ New Participant,  ", uuid, "~ Account:", participant, "~ ID:", id);        
+        console.log("⛓️🤖 [ 🚩 ]  New Participant,  ", uuid, "~ Account:", participant, "~ ID:", id);        
     });
     /**
      *  
      */    
     contract.on("BroadcastEndingEvent", async(...params) => {        
         const {"0":owner, "1":uuid} = params;   
-        console.log("🚩 ~ End Broadcast:", uuid);    
+        console.log("⛓️🤖 [ 🚩 ] End Broadcast:", uuid, " 🙎‍♂️ Owner: ", owner);    
         await endBroadcastFlow({owner, uuid});    
     });
     /**
@@ -47,7 +47,7 @@ const oracleListener = () => {
      */    
     contract.on("SetScoreEvent", (...params) => {        
         const {"0":owner, "1":uuid} = params;   
-        console.log("🚩 ~ Set Score:", uuid, owner);            
+        console.log("⛓️🤖 [ 🚩 ] Set Score:", uuid, owner);            
     });
 
 
