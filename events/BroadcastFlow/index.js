@@ -1,54 +1,99 @@
-const streamBuffers = require('stream-buffers');
+const axios = require('axios');
 const FormData = require('form-data');
-const fs = require('fs');
-
-//const { getFileBlob } = require("../../services/ipfsService");
-const { compare } = require("../../services/modelsServices");
-const { addRecord } = require("../../services/blockchainService");
+const streamBuffers = require('stream-buffers');
  
-const broadcasFlow = async({owner, uuid, cid, curp}) => {    
+const API_METHOD                = "curp/participate";
+const NODE_ACCOUNT              = process.env.NODE_ACCOUNT;        
+const BIOMETRIC_HOST            = process.env.BIOMETRIC_HOST;
+const BIOMETRIC_API_KEY         = process.env.BIOMETRIC_API_KEY;
+const BIOMETRIC_URL_SERVICE     = process.env.BIOMETRIC_URL_SERVICE;
+const BLOCKCHAIN_URL_SERVICE    = process.env.BLOCKCHAIN_URL_SERVICE;
 
-    const NODE_ACCOUNT = process.env.NODE_ACCOUNT;    
+const broadcasFlow = async({owner, uuid, cid, curp}) => {        
 
     if(owner == NODE_ACCOUNT) {
-        console.log("📌📌📌 => This node send this search <=");        
+        console.log("📌📌📌 => This node send this search");        
         return
     };
     
-    console.log("📌📌📌 ==> This Node is", NODE_ACCOUNT);        
+    await exec(uuid, curp, cid);
     
-    /**
-     * Modelos Biometricos 
-     */
-    console.log("✅ [ + ] Start Request To Backend.");        
+}
+
+const exec = async(uuid, curp, cid) => {
+
+    console.log("Starting Proccess");        
     
-    let dataBiometrics = new FormData();    
-    dataBiometrics.append("curp", curp);    
-    //dataBiometrics.append('imageQuery', imgFile);
-    dataBiometrics.append('imageQuery', fs.createReadStream(__dirname +'/img.png'));
+    console.log("⏲️ => Ipfs download init:", new Date().toISOString());        
 
-    const result = await compare(dataBiometrics);
-    console.log("[ - ] End Back", result);    
+    const config = {
+        
+        url: `https://infura-ipfs.io/ipfs/${cid}`,
+        method: 'GET',
+        responseType: 'stream'
 
-    /**
-     * Middleware Blockchain
-     */         
-    console.log("✅ [ + ] Start Request To Middleware Blockchain.");        
-    const bufferJsonFile = new streamBuffers.WritableStreamBuffer({
-        initialSize: (100 * 1024),  
-        incrementAmount: (10 * 1024)
-    });
+    }
+    
+    axios(config)
+        .then( async({data})  => {        
+            console.log("⏲️ => Ipfs download final:", new Date().toISOString());                            
+            console.log("⏲️ => Biometricos API init:", new Date().toISOString());        
+            
+            const biometricData = new FormData();    
+            biometricData.append("curp", curp);            
+            biometricData.append("imageQuery", data, {filename:`${cid}.png`});
 
-    bufferJsonFile.write(JSON.stringify(result));    
+            const config = {
+                method: 'post',
+                url: BIOMETRIC_URL_SERVICE,
+                headers: { 
+                    'apikey': BIOMETRIC_API_KEY, 
+                    'host': BIOMETRIC_HOST, 
+                    ...biometricData.getHeaders()
+                },
+                data : biometricData
+            };
+            axios(config)
+                .then(async({data}) => {                
+                    console.log("⏲️ => Biometricos API final:", new Date().toISOString());        
+                    /**
+                     * Middleware Blockchain
+                     */         
+                    console.log("⏲️ => Blockchain middelware init:", new Date().toISOString());
 
-    let dataBlockchain = new FormData();
-    dataBlockchain.append('Curp', curp);
-    dataBlockchain.append('Uuid', uuid);
-    dataBlockchain.append('File', bufferJsonFile.getContents(), `${NODE_ACCOUNT}.json`);
+                    const bufferJsonFile = new streamBuffers.WritableStreamBuffer({
+                        initialSize: (100 * 1024),  
+                        incrementAmount: (10 * 1024)
+                    });
+                    bufferJsonFile.write(JSON.stringify(data));    
 
-    const dataResult = await addRecord(dataBlockchain);
+                    let dataBlockchain = new FormData();
+                    dataBlockchain.append('Curp', curp);
+                    dataBlockchain.append('Uuid', uuid);
+                    dataBlockchain.append('File', bufferJsonFile.getContents(), `${NODE_ACCOUNT}.json`);
 
-    console.log("[ - ] End Middleware.", dataResult);   
+                    const config = {
+                        method: 'post',
+                        url: `${BLOCKCHAIN_URL_SERVICE}${API_METHOD}`,
+                        headers: { 
+                            'accept': 'application/json', 
+                            ...dataBlockchain.getHeaders()
+                        },
+                        data : dataBlockchain
+                    };
+                    axios(config)
+                        .then(({data}) => {                    
+                            console.log("⏲️ => Blockchain middelware final:", new Date().toISOString());                               
+                            console.log("Ending Proccess");        
+                        })
+                        .catch((error) => console.log("middleware error -->", error));                    
+                    
+
+    
+                })
+                .catch((error) => console.log("biometricos error -->", error));                    
+        })
+        .catch((error) => console.log("ipfs error -->", error));    
 }
 
 module.exports = broadcasFlow;

@@ -10,11 +10,13 @@ const oracleListener = () => {
     const PROJECT_ID                = process.env.PROJECT_ID;
     const SMARTCONTRACT_ADDRESS     = process.env.SMARTCONTRACT_ADDRESS;
     const NODE_ACCOUNT              = process.env.NODE_ACCOUNT;    
+    const ACCOUNT_NAME              = process.env.ACCOUNT_NAME;        
 
     const provider = new ethers.providers.InfuraProvider( PROVIDER, PROJECT_ID);
     const contract = new ethers.Contract(SMARTCONTRACT_ADDRESS, abi, provider);
 
-    console.log("👉", NODE_ACCOUNT, "👈")
+    console.log("👉", NODE_ACCOUNT, "👈");
+    console.log("👉", ACCOUNT_NAME, "👈");
 
     /**
      * 
@@ -43,7 +45,7 @@ const oracleListener = () => {
     contract.on("BroadcastEndingEvent", async(...params) => {        
         const {"0":owner, "1":uuid} = params;   
         console.log("⛓️🤖 [ 🚩 ] End Broadcast:", uuid, " 🙎‍♂️ Owner: ", owner);    
-        //await endBroadcastFlow({owner, uuid});    
+        await endBroadcastFlow({owner, uuid});    
     });
     /**
      *  
